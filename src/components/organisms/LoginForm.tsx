@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { AlertCircle } from 'lucide-react'
+import auth from '@/api/auth'
 
 type FormData = {
   name: string
@@ -19,6 +20,7 @@ type FormData = {
 export default function LoginForm() {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [apiError, setApiError] = useState('')
   const {
     register,
     handleSubmit,
@@ -29,16 +31,28 @@ export default function LoginForm() {
 
   const onSubmit = async (data: FormData) => {
     setIsSubmitting(true)
-    //Post request to login
-    
+    const response = await auth.login(data)
+    if(response.error){
+      setIsSubmitting(false)
+      setApiError(response.error)
+      return
+    }
+    localStorage.setItem('token', response.data.token)
+    router.push('/dashboard')
+    setIsSubmitting(false)    
   }
-
 
   return (
     <Card className="mx-auto max-w-sm">
       <CardHeader className="space-y-1">
         <CardTitle className="text-2xl font-bold">Login</CardTitle>
         <CardDescription>Insira seus dados para entrar em sua conta</CardDescription>
+        {apiError && (
+          <div className='flex items-center space-x-1 py-1'>
+            <AlertCircle className="text-red-500" size={24} />
+            <p className="text-sm text-red-500">{apiError}</p>
+          </div>
+        )}
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">

@@ -1,13 +1,14 @@
 'use client'
 
 import { useState } from 'react'
-import { useForm } from 'react-hook-form'
+import { set, useForm } from 'react-hook-form'
 import { useRouter } from 'next/navigation'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { AlertCircle } from 'lucide-react'
+import auth from '@/api/auth'
 
 type FormData = {
   name: string
@@ -19,6 +20,7 @@ type FormData = {
 export default function RegisterForm() {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [apiError, setApiError] = useState('')
   const {
     register,
     handleSubmit,
@@ -28,13 +30,18 @@ export default function RegisterForm() {
     mode: 'onChange',
   })
 
+
   const onSubmit = async (data: FormData) => {
     setIsSubmitting(true)
-    // Simular o envio do formulário
-    await new Promise((resolve) => setTimeout(resolve, 1000))
-    console.log(data)
+    const response = await auth.register(data)
+    if(response.error){
+      setIsSubmitting(false)
+      setApiError(response.error)
+      return
+    }
+    localStorage.setItem('token', response.data.token)
+    router.push('/login')
     setIsSubmitting(false)
-    // Aqui você adicionaria a lógica para enviar os dados para o seu backend
   }
 
   const password = watch('password')
@@ -44,6 +51,12 @@ export default function RegisterForm() {
       <CardHeader className="space-y-1">
         <CardTitle className="text-2xl font-bold">Cadastro</CardTitle>
         <CardDescription>Insira seus dados para criar uma nova conta</CardDescription>
+        {apiError && (
+          <div className='flex items-center space-x-1 py-1'>
+            <AlertCircle className="text-red-500" size={24} />
+            <p className="text-sm text-red-500">{apiError}</p>
+          </div>
+        )}
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
