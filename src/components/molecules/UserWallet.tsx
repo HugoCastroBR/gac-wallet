@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from 'react'
+import { use, useEffect, useState } from 'react'
 import { Plus } from 'lucide-react'
 import { toast } from '@/hooks/use-toast'
 
@@ -9,13 +9,31 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/com
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import auth from '@/api/auth'
+import { authUser } from '@/types/auth'
 
-interface UserWalletProps {
-  balance: number
-  setBalance: React.Dispatch<React.SetStateAction<number>>
-}
 
-export default function UserWallet({ balance, setBalance }: UserWalletProps) {
+
+export default function UserWallet() {
+
+  const [user, setUser] = useState<authUser>()
+  const [balance, setBalance] = useState(1000)
+
+  const getMe = async () => {
+    const res = await auth.me()
+    setUser(res.data)
+  }
+
+  useEffect(() => {
+    getMe()
+  }, [])
+
+  useEffect(() => {
+    if(user){
+      setBalance(parseFloat(user.accountValueBrl))
+    }
+  }, [user])
+
   const [addAmount, setAddAmount] = useState("")
   const [isDialogOpen, setIsDialogOpen] = useState(false)
 

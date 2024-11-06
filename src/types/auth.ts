@@ -3,19 +3,21 @@ export interface authLogin {
   password: string
 }
 
+export interface authUser {
+  id: number;
+  name: string;
+  email: string;
+  password: string;
+  accountValueBrl: string;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt: string | null;
+}
+
 export interface LoginResponse {
   message: string;
   data: {
-    user: {
-      id: number;
-      name: string;
-      email: string;
-      password: string;
-      accountValueBrl: string;
-      createdAt: string;
-      updatedAt: string;
-      deletedAt: string | null;
-    };
+    user: authUser;
     token: string;
   };
 }

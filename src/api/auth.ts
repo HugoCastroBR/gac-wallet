@@ -1,7 +1,7 @@
 import { authLogin } from "@/types/auth"
 const api = 'http://localhost:8080/'
 
-const login = async (data: authLogin) => {
+export const login = async (data: authLogin) => {
   const response = await fetch(`${api}auth/login`, {
     method: 'POST',
     headers: {
@@ -12,6 +12,18 @@ const login = async (data: authLogin) => {
   return response.json()
 }
 
+export const me = async () => {
+  const response = await fetch(`${api}auth/me`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${localStorage.getItem('token')}`
+    },
+  })
+  return response.json()
+}
+
 export default {
   login,
+  me,
 }
