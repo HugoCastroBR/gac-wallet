@@ -1,9 +1,8 @@
 "use client"
 
-import { use, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Plus } from 'lucide-react'
 import { toast } from '@/hooks/use-toast'
-
 import { Button } from '@/components/ui/button'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
@@ -11,10 +10,14 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import auth from '@/api/auth'
 import { authUser } from '@/types/auth'
+import { deposit } from '@/api/user'
 
-
-
-export default function UserWallet() {
+interface UserWalletProps {
+  reloadWallet: boolean
+}
+export default function UserWallet({
+  reloadWallet,
+}: UserWalletProps) {
 
   const [user, setUser] = useState<authUser>()
   const [balance, setBalance] = useState(1000)
@@ -26,7 +29,7 @@ export default function UserWallet() {
 
   useEffect(() => {
     getMe()
-  }, [])
+  }, [reloadWallet])
 
   useEffect(() => {
     if(user){
@@ -37,16 +40,23 @@ export default function UserWallet() {
   const [addAmount, setAddAmount] = useState("")
   const [isDialogOpen, setIsDialogOpen] = useState(false)
 
-  const handleAddMoney = () => {
+  const handleAddMoney = async () => {
     const addedAmount = parseFloat(addAmount)
     if (isNaN(addedAmount) || addedAmount <= 0) {
       toast({ title: "Valor inválido", description: "Por favor, insira um valor válido.", variant: "destructive" })
       return
     }
     setBalance(prevBalance => prevBalance + addedAmount)
-    toast({ title: "Dinheiro adicionado", description: `R$ ${addedAmount.toFixed(2)} adicionado à sua conta com sucesso.` })
-    setAddAmount("")
-    setIsDialogOpen(false)
+    try {
+      await deposit(addedAmount)
+      toast({ title: "Dinheiro adicionado", description: `R$ ${addedAmount.toFixed(2)} adicionado à sua conta com sucesso.` })
+      setAddAmount("")
+      setIsDialogOpen(false)
+      await getMe()
+    } catch (error) {
+      toast({ title: "Erro", description: "Ocorreu um erro ao adicionar dinheiro à sua conta.", variant: "destructive" })
+      setAddAmount("")
+    }
   }
 
   return (

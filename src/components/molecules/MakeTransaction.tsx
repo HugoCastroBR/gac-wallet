@@ -2,52 +2,41 @@
 
 import { useState } from 'react'
 import { toast } from '@/hooks/use-toast'
-
 import { Button } from '@/components/ui/button'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { makeTransaction } from '@/api/transactions'
+import { AlertCircle } from 'lucide-react'
 
 interface MakeTransactionProps {
-  balance: number
-  setBalance: React.Dispatch<React.SetStateAction<number>>
+  onTransactionMade: React.Dispatch<React.SetStateAction<boolean>>
 }
 
-export default function MakeTransaction({ balance, setBalance }: MakeTransactionProps) {
+export default function MakeTransaction({
+  onTransactionMade,
+}: MakeTransactionProps) {
+
   const [recipient, setRecipient] = useState("")
-  const [amount, setAmount] = useState("")
+  const [amount, setAmount] = useState(0)
   const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState("")
 
-  const handleSendMoney = () => {
+  const handleSendMoney = async() => {
+
     setIsLoading(true)
-    const transferAmount = parseFloat(amount)
+    const response = await makeTransaction({
+      sentToUserEmail: recipient,
+      valueBrl: amount,
+    })
 
-    if (isNaN(transferAmount) || transferAmount <= 0) {
-      toast({ title: "Valor inválido", description: "Por favor, insira um valor válido.", variant: "destructive" })
+    toast({ title: "Dinheiro enviado", description: `R$ ${amount.toFixed(2)} enviado para ${recipient}.` })    
+    if(response.error){
+      setError(response.error)
       setIsLoading(false)
-      return
     }
-
-    if (transferAmount > balance) {
-      toast({ title: "Saldo insuficiente", description: "Você não tem saldo suficiente para esta transferência.", variant: "destructive" })
-      setIsLoading(false)
-      return
-    }
-
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(recipient)) {
-      toast({ title: "E-mail inválido", description: "Por favor, insira um endereço de e-mail válido para o destinatário.", variant: "destructive" })
-      setIsLoading(false)
-      return
-    }
-
-    // Simulate a delay for the transaction
-    setTimeout(() => {
-      setBalance(prevBalance => prevBalance - transferAmount)
-      toast({ title: "Dinheiro enviado", description: `R$ ${transferAmount.toFixed(2)} enviado para ${recipient} com sucesso.` })
-      setRecipient("")
-      setAmount("")
-      setIsLoading(false)
-    }, 1000)
+    setIsLoading(false)
+    onTransactionMade(true)
   }
 
   return (
@@ -55,6 +44,12 @@ export default function MakeTransaction({ balance, setBalance }: MakeTransaction
       <CardHeader>
         <CardTitle>Enviar Dinheiro</CardTitle>
         <CardDescription>Transferir fundos para outro usuário</CardDescription>
+        {error && (
+          <div className='flex items-center space-x-1 py'>
+            <AlertCircle className="text-red-500" size={18} />
+            <p className="text-xs text-red-500">{error}</p>
+          </div>
+        )}
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2">
@@ -73,7 +68,7 @@ export default function MakeTransaction({ balance, setBalance }: MakeTransaction
             id="amount"
             type="number"
             value={amount}
-            onChange={(e) => setAmount(e.target.value)}
+            onChange={(e) => setAmount(Number(e.target.value))}
             placeholder="Insira o valor"
           />
         </div>
@@ -82,7 +77,7 @@ export default function MakeTransaction({ balance, setBalance }: MakeTransaction
           onClick={handleSendMoney}
           disabled={isLoading}
         >
-          {isLoading ? "Enviando..." : "Enviar Dinheiro"}
+          Enviar Dinheiro
         </Button>
       </CardContent>
     </Card>

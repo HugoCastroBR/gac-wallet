@@ -1,54 +1,59 @@
-"use client"
-
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { ArrowUpDown, ArrowLeftRight, ChevronLeft, ChevronRight } from 'lucide-react'
 import { toast } from '@/hooks/use-toast'
-
 import { Button } from '@/components/ui/button'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
 import { TableHeader, TableRow, TableHead, TableBody, TableCell, Table } from '@/components/ui/table'
-import { transaction  } from '@/types/transaction'
-
-
+import { transaction } from '@/types/transaction'
+import { getTransactions, revertTransaction } from '@/api/transactions'
 
 interface TransactionsTableProps {
-  transactions: transaction[]
-  setTransactions: React.Dispatch<React.SetStateAction<transaction[]>>
+  reloadTransactions: boolean
+  onRevertTransaction: React.Dispatch<React.SetStateAction<boolean>>
 }
 
-export default function TransactionsTable({ transactions, setTransactions }: TransactionsTableProps) {
+export default function TransactionsTable({
+  reloadTransactions,
+  onRevertTransaction,
+}: TransactionsTableProps) {
+  const [transactions, setTransactions] = useState<transaction[]>([])
+  const [totalPages, setTotalPages] = useState(0)
   const [currentPage, setCurrentPage] = useState(1)
-  const [itemsPerPage] = useState(10)
-  const [sortConfig, setSortConfig] = useState<{ key: keyof transaction | null; direction: 'ascending' | 'descending' }>({ key: null, direction: 'ascending' })
+  const [orderBy, setOrderBy] = useState<keyof transaction>('createdAt')
+  const [order, setOrder] = useState<'asc' | 'desc'>('desc')
 
-
-  const totalPages = Math.ceil(transactions.length / itemsPerPage)
-
-  const handleReverseTransaction = (transactionId: number) => {
-    const transactionToReverse = transactions.find(t => t.id === transactionId)
-    if (!transactionToReverse) return
-
-    const reversedTransaction: transaction = {
-      id: transactions.length + 1,
-      type: transactionToReverse.type === "send" ? "receive" : "send",
-      valueBrl: transactionToReverse.valueBrl,
-      sentToUser: transactionToReverse.sentFromUser,
-      sentFromUser: transactionToReverse.sentToUser,
-      createdAt: new Date().toISOString(),
-    }
-
-    setTransactions(prevTransactions => [reversedTransaction, ...prevTransactions])
-    toast({ 
-      title: "Transação revertida", 
-      description: `Transação de R$ ${parseFloat(transactionToReverse.valueBrl).toFixed(2)} foi revertida.` 
+  const handlerGetTransactions = async (page: number = 1) => {
+    const transactions = await getTransactions({
+      page,
+      limit: 5,
+      orderBy,
+      order,
     })
+    setTotalPages(transactions.totalPages)
+    setTransactions(transactions.data || [])
+  }
+
+  useEffect(() => {
+    handlerGetTransactions(currentPage)
+  }, [currentPage, orderBy, order, reloadTransactions])
+
+  const handleReverseTransaction = async (transactionId: number) => {
+    const res = await revertTransaction(transactionId)
+    if (res.error) {
+      toast({ title: "Erro", description: res.error, variant: "destructive" })
+      return
+    }
+    handlerGetTransactions(currentPage)
+    onRevertTransaction(true)
   }
 
   const handleSort = (key: keyof transaction) => {
-    setSortConfig(prevConfig => ({
-      key,
-      direction: prevConfig.key === key && prevConfig.direction === 'ascending' ? 'descending' : 'ascending',
-    }))
+    if (orderBy === key) {
+      setOrder(prevOrder => prevOrder === 'asc' ? 'desc' : 'asc')
+    } else {
+      setOrderBy(key)
+      setOrder('desc')
+    }
   }
 
   return (
@@ -63,25 +68,25 @@ export default function TransactionsTable({ transactions, setTransactions }: Tra
             <TableHeader>
               <TableRow>
                 <TableHead className="cursor-pointer" onClick={() => handleSort('type')}>
-                  Tipo {sortConfig.key === 'type' && <ArrowUpDown className="inline ml-2 h-4 w-4" />}
+                  Tipo
                 </TableHead>
                 <TableHead className="cursor-pointer" onClick={() => handleSort('valueBrl')}>
-                  Valor {sortConfig.key === 'valueBrl' && <ArrowUpDown className="inline ml-2 h-4 w-4" />}
+                  Valor {<ArrowUpDown className="inline ml-2 h-4 w-4" />}
                 </TableHead>
                 <TableHead className="cursor-pointer hidden md:table-cell" onClick={() => handleSort('sentFromUser')}>
-                  De {sortConfig.key === 'sentFromUser' && <ArrowUpDown className="inline ml-2 h-4 w-4" />}
+                  De
                 </TableHead>
                 <TableHead className="cursor-pointer hidden md:table-cell" onClick={() => handleSort('sentToUser')}>
-                  Para {sortConfig.key === 'sentToUser' && <ArrowUpDown className="inline ml-2 h-4 w-4" />}
+                  Para
                 </TableHead>
                 <TableHead className="cursor-pointer" onClick={() => handleSort('createdAt')}>
-                  Data/Hora {sortConfig.key === 'createdAt' && <ArrowUpDown className="inline ml-2 h-4 w-4" />}
+                  Data/Hora {<ArrowUpDown className="inline ml-2 h-4 w-4" />}
                 </TableHead>
                 <TableHead>Ação</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {transactions.map((transaction:transaction) => (
+              {transactions.map((transaction: transaction) => (
                 <TableRow key={transaction.id}>
                   <TableCell>{transaction.type === "send" ? "Enviado" : "Recebido"}</TableCell>
                   <TableCell>R$ {parseFloat(transaction.valueBrl).toFixed(2)}</TableCell>
@@ -101,7 +106,7 @@ export default function TransactionsTable({ transactions, setTransactions }: Tra
         </div>
         <div className="flex flex-col sm:flex-row items-center justify-between mt-4 space-y-2 sm:space-y-0">
           <div className="text-sm text-muted-foreground">
-            Mostrando {(currentPage - 1) * itemsPerPage + 1} a {Math.min(currentPage * itemsPerPage, transactions.length)} de {transactions.length} transações
+            Pagina {currentPage} de {totalPages} paginas
           </div>
           <div className="flex items-center space-x-2">
             <Button
