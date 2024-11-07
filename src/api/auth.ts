@@ -1,5 +1,5 @@
 import { authLogin, authRegister } from "@/types/auth"
-const api = 'http://localhost:8080/'
+import { api } from "@/utils/constants"
 
 export const login = async (data: authLogin) => {
   const response = await fetch(`${api}auth/login`, {

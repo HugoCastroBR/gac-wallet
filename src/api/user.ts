@@ -1,4 +1,4 @@
-const api = 'http://localhost:8080/'
+import { api } from "@/utils/constants"
 
 export const deposit = async (amount:number) => {
   const token = localStorage.getItem('token')

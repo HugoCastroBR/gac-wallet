@@ -1,4 +1,4 @@
-const api = 'http://localhost:8080/'
+import { api } from "@/utils/constants"
 
 
 interface getTransactionsReqProps {
