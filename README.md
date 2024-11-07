@@ -1,36 +1,42 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-## Getting Started
+## Instalação
 
-First, run the development server:
+A aplicação segue o conceito de Atomic Design, priorizando componentes reutilizáveis e bem definidos.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## Configuração
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Para instalar as dependencias utilize:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+`npm install`
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Para iniciar o projeto utilize:
 
-## Learn More
+`npm run dev`
 
-To learn more about Next.js, take a look at the following resources:
+A aplicação deve iniciar na porta 3000
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Utilização
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Dashboard:
 
-## Deploy on Vercel
+`/dashboard`
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+No Dashboard é possivel acessar os dados de transações, adicionar dinheiro a carteira e realizar ou reverter transações.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Login
+
+* **Rota** : `/login`
+* **Descrição** : Na página de Login, os usuários podem inserir suas credenciais (e-mail e senha) para acessar sua conta. O formulário de login inclui validação em tempo real para garantir que os dados sejam preenchidos corretamente. Ao efetuar login com sucesso, os usuários são redirecionados para a página principal do Dashboard.
+
+### Registro
+
+* **Rota** : `/register`
+* **Descrição** : Na página de Registro, novos usuários podem criar uma conta fornecendo informações necessárias, como nome, e-mail e senha. O formulário de registro também inclui validação para garantir que todos os campos sejam preenchidos corretamente e que a senha atenda aos critérios de segurança. Após o registro bem-sucedido, os usuários serão redirecionados para a página de Login, onde poderão acessar sua nova conta.
+
+## Tecnologias Utilizadas
+
+* **Next.js** : Framework React para aplicações web, com renderização do lado do servidor e geração de sites estáticos.
+* **React** : Biblioteca para construção da interface do usuário.
+* **Tailwind** : Estilização.
+* **Shadcn**: Componentes rapidos com tailwind.
+* **TypeScript** : Superset de JavaScript que adiciona tipagem estática, melhorando a robustez do código.
